@@ -1,0 +1,21 @@
+workflows:
+  android-build:
+    name: Build Android AAB
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      java: 17
+    scripts:
+      - name: Extract zip and prepare project
+        script: |
+          unzip -q balvikasika-1.zip
+          if [ -d "balvikasika-1" ]; then
+            cp -r balvikasika-1/* .
+          fi
+          chmod +x gradlew || gradle wrapper && chmod +x gradlew
+      - name: Build Android App Bundle
+        script: |
+          ./gradlew bundleRelease --stacktrace
+    artifacts:
+      - app/build/outputs/bundle/**/*.aab
+      
