@@ -19,26 +19,19 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
     - name: Unzip and Prepare Project
       run: |
         unzip -q balvikasika-1.zip
-        # Saari files check karke main directory me layein
-        if [ -f "balvikasika-1/build.gradle.kts" ]; then
+        if [ -d "balvikasika-1" ]; then
           cp -r balvikasika-1/* .
         fi
-        # Wrapper ko execute permission dein
-        chmod +x gradlew || true
+        gradle wrapper
+        chmod +x gradlew
 
     - name: Build Android Bundle (AAB)
-      run: |
-        if [ -f "./gradlew" ]; then
-          ./gradlew bundleRelease --no-daemon --stacktrace
-        else
-          cd balvikasika-1 && chmod +x gradlew && ./gradlew bundleRelease --no-daemon --stacktrace
-        fi
+      env:
+        ANDROID_HOME: /usr/local/lib/android/sdk
+      run: ./gradlew bundleRelease --no-daemon --stacktrace
 
     - name: Upload Signed/Release AAB Artifact
       uses: actions/upload-artifact@v4
