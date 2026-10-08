@@ -19,30 +19,30 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Unzip and Locate Gradle
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Unzip and Prepare Project
       run: |
         unzip -q balvikasika-1.zip
-        # Gradlew file dhoond kar root par lana
-        GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
-        if [ -n "$GRADLEW_PATH" ]; then
-          PROJECT_DIR=$(dirname "$GRADLEW_PATH")
-          echo "Found project at: $PROJECT_DIR"
-          if [ "$PROJECT_DIR" != "." ]; then
-            cp -rn "$PROJECT_DIR"/* .
-          fi
+        # Saari files check karke main directory me layein
+        if [ -f "balvikasika-1/build.gradle.kts" ]; then
+          cp -r balvikasika-1/* .
         fi
-        # Agar gradlew missing ho toh wrapper generate karna
-        if [ ! -f "gradlew" ]; then
-          gradle wrapper
-        fi
-        chmod +x gradlew
+        # Wrapper ko execute permission dein
+        chmod +x gradlew || true
 
     - name: Build Android Bundle (AAB)
-      run: ./gradlew bundleRelease --stacktrace
+      run: |
+        if [ -f "./gradlew" ]; then
+          ./gradlew bundleRelease --no-daemon --stacktrace
+        else
+          cd balvikasika-1 && chmod +x gradlew && ./gradlew bundleRelease --no-daemon --stacktrace
+        fi
 
     - name: Upload Signed/Release AAB Artifact
       uses: actions/upload-artifact@v4
       with:
         name: balvikasika-release-bundle
-        path: app/build/outputs/bundle/release/*.aab
+        path: "**/build/outputs/bundle/release/*.aab"
         
