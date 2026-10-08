@@ -19,12 +19,21 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Unzip Project Archive
+    - name: Unzip and Locate Gradle
       run: |
         unzip -q balvikasika-1.zip
-        # Move files to root if unzipped inside a nested folder
-        if [ -d "balvikasika-1" ]; then
-          cp -r balvikasika-1/* .
+        # Gradlew file dhoond kar root par lana
+        GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
+        if [ -n "$GRADLEW_PATH" ]; then
+          PROJECT_DIR=$(dirname "$GRADLEW_PATH")
+          echo "Found project at: $PROJECT_DIR"
+          if [ "$PROJECT_DIR" != "." ]; then
+            cp -rn "$PROJECT_DIR"/* .
+          fi
+        fi
+        # Agar gradlew missing ho toh wrapper generate karna
+        if [ ! -f "gradlew" ]; then
+          gradle wrapper
         fi
         chmod +x gradlew
 
